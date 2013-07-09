@@ -32,8 +32,9 @@ sub next {
   my $self = shift;
 
   # protect some state values from leaking
-  local $self->{yieldval};
   local $self->{orig} = $Coro::current;
+  local $self->{wantarray} = wantarray;
+  local $self->{yieldval};
  
   $self->{coro} = Coro->new(sub {
     local $_ = $self;
@@ -43,7 +44,7 @@ sub next {
   $self->{coro}->schedule_to;
 
   return 
-    wantarray
+    $self->{wantarray}
     ? @{ $self->{yieldval} }
     : $self->{yieldval}[0];
 }
@@ -52,6 +53,8 @@ sub restart {
   my $self = shift;
   undef $self->{coro};
 }
+
+sub wantarray { shift->{wantarray} }
  
 sub yield {
   my $self = shift;

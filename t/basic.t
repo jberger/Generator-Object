@@ -16,8 +16,9 @@ subtest 'Basic Usage (evens)' => sub {
   is $evens->next, 2, 'right result';
   is $evens->next, 4, 'right result';
 
-  ok ! exists $evens->{yieldval}, 'yieldval does not leak';
   ok ! exists $evens->{orig}, 'orig does not leak';
+  ok ! exists $evens->{wantarray}, 'wantarry does not leak';
+  ok ! exists $evens->{yieldval}, 'yieldval does not leak';
 };
 
 my $alpha = generator {
@@ -30,7 +31,7 @@ my $alpha = generator {
   }
 };
 
-subtest 'Context (alpha)' => sub {
+subtest 'Simple Context (alpha)' => sub {
   is_deeply [$alpha->next], [qw/a b c/], 'right result (list)';
   is_deeply [$alpha->next], [qw/b c d/], 'right result (list)';
 
@@ -49,6 +50,17 @@ is $evens->next, 2, 'restart';
 
 eval{ $evens->yield };
 ok $@, 'yield outside generator dies';
+
+subtest 'Context from next/wantarray' => sub {
+  my $gen = generator {
+    while (1) {
+      $_->wantarray ? $_->yield('a') : $_->yield('b');
+    }
+  };
+
+  is_deeply [ $gen->next ], ['a'], 'list context';
+  is scalar $gen->next, 'b', 'scalar context';
+};
 
 done_testing;
 
