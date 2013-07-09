@@ -49,12 +49,9 @@ sub next {
     : $self->{yieldval}[0];
 }
 
-sub restart {
-  my $self = shift;
-  undef $self->{coro};
-}
+sub restart   { undef shift->{coro} }
 
-sub wantarray { shift->{wantarray} }
+sub wantarray { shift->{wantarray}  }
  
 sub yield {
   my $self = shift;
