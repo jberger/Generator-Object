@@ -47,6 +47,11 @@ sub next {
     ? @{ $self->{yieldval} }
     : $self->{yieldval}[0];
 }
+
+sub restart {
+  my $self = shift;
+  undef $self->{coro};
+}
  
 sub yield {
   my $self = shift;

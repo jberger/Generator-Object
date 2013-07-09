@@ -17,7 +17,7 @@ subtest 'Basic Usage (evens)' => sub {
   is $evens->next, 4, 'right result';
 
   ok ! exists $evens->{yieldval}, 'yieldval does not leak';
-  ok ! exists $evens->{orig},   'orig does not leak';
+  ok ! exists $evens->{orig}, 'orig does not leak';
 };
 
 my $alpha = generator {
@@ -43,6 +43,9 @@ subtest 'Interference' => sub {
   is $evens->next, 6, 'right result (even)';
   is $alpha->next, 'd', 'right result (alpha)';
 };
+
+$evens->restart;
+is $evens->next, 2, 'restart';
 
 eval{ $evens->yield };
 ok $@, 'yield outside generator dies';
