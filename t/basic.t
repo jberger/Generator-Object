@@ -51,7 +51,7 @@ is $evens->next, 2, 'restart';
 eval{ $evens->yield };
 ok $@, 'yield outside generator dies';
 
-subtest 'Context from next/wantarray' => sub {
+subtest 'Context from next via wantarray' => sub {
   my $gen = generator {
     while (1) {
       $_->wantarray ? $_->yield('a') : $_->yield('b');
