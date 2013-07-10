@@ -8,6 +8,8 @@ $VERSION = eval $VERSION;
 
 use Coro ();
 
+# class methods
+
 sub import {
   my $class = shift;
   my $caller = caller;
@@ -24,9 +26,12 @@ sub import {
 sub new {
   my $class = shift;
   my $sub = shift;
- 
   return bless { sub => $sub }, $class;
 }
+
+# methods
+
+sub exhausted { shift->{exhausted} }
  
 sub next {
   my $self = shift;
@@ -35,10 +40,14 @@ sub next {
   local $self->{orig} = $Coro::current;
   local $self->{wantarray} = wantarray;
   local $self->{yieldval};
+
+  $self->restart if $self->exhausted;
  
   $self->{coro} = Coro->new(sub {
     local $_ = $self;
-    $self->{sub}->();
+    $self->{retval} = [ $self->{sub}->() ];
+    $self->{exhausted} = 1;
+    $self->{orig}->schedule_to;
   }) unless $self->{coro};
 
   $self->{coro}->schedule_to;
@@ -49,9 +58,23 @@ sub next {
     : $self->{yieldval}[0];
 }
 
-sub restart   { undef shift->{coro} }
+sub restart {
+  my $self = shift;
+  undef $self->{coro};
+  undef $self->{exhausted};
+  undef $self->{retval};
+}
 
-sub wantarray { shift->{wantarray}  }
+sub retval { 
+  my $self = shift;
+  return undef unless $self->{retval};
+  return
+    wantarray
+    ? @{ $self->{retval} }
+    : $self->{retval}[0];
+}
+
+sub wantarray { shift->{wantarray} }
  
 sub yield {
   my $self = shift;
