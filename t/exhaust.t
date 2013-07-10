@@ -16,8 +16,10 @@ is scalar $gen->retval, 'done', 'return value (scalar context)';
 is_deeply [ $gen->retval], ['done', 'and done'], 'return value (list context)';
 
 is $gen->next, 'yield', 'restarted';
-is $gen->retval, undef, 'retval cleared';
-is $gen->exhausted, undef, 'exhausted cleared';
+ok ! exists $gen->{retval}, 'retval is removed';
+is $gen->retval, undef, 'retval reflects restart';
+ok ! exists $gen->{exhausted}, 'exhausted is removed';
+is $gen->exhausted, undef, 'exhausted reflects restart';
 
 
 done_testing;

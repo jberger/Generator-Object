@@ -60,9 +60,9 @@ sub next {
 
 sub restart {
   my $self = shift;
-  undef $self->{coro};
-  undef $self->{exhausted};
-  undef $self->{retval};
+  delete $self->{coro};
+  delete $self->{exhausted};
+  delete $self->{retval};
 }
 
 sub retval { 
