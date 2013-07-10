@@ -41,6 +41,65 @@ restarts.
 
 The internals of the object are entirely off-limits and where possible they
 have been hidden to prevent access. No subclass api is presented nor planned.
-The use of C<Coro> internally shouldn't interfere with use of C<Coro>
+The use of L<Coro> internally shouldn't interfere with use of L<Coro>
 externally.
  
+=head1 EXPORTS
+
+=head2 generator
+
+ my $gen = generator { ...; $_->yield };
+
+Convenience function for creating instances of L<Generator::Object>. Takes a
+block (subref) which is the body of the generator. Returns an instance of
+L<Generator::Object>.
+
+=head1 CONSTRUCTOR
+
+=head2 new
+
+ my $gen = Generator::Object->new(sub{...; $_->yield});
+
+Takes a subref which is the body of the generator. Returns an instance of
+L<Generator::Object>.
+
+=head1 METHODS
+
+=head2 exhausted
+
+ while (1) {
+   next if defined $gen->next;
+   print "Done\n" if $gen->exhausted;
+ }
+
+When the generator is exhausted the C<next> method will return C<undef>.
+However, since C<next> might legitimately return C<undef>, this method is
+provided to check that the generator has indeed been exhausted.
+
+Note that if C<next> is called on an exhausted generator, it is restarted, and
+thus C<exhausted> will again return a false value.
+
+=head2 next
+
+ my $first  = $gen->next;
+ my $second = $gen->next;
+
+This method iterates the generator until C<yield> is called or the body is
+returned from. It returns any value passed to C<yield>, in list context all
+arguments are returned, in scalar context the first argument is returned. This
+emulates returning a list. The context of the C<next> call is available from
+the C<wantarray> method for more manual control.
+
+When the generator is exhausted, that is to say, when the body function
+returns, C<next> returns C<undef>. Check C<exhausted> to differentiate between
+exhaustion and a yielded C<undef>. Any values returned from the body are
+available via the C<retval> method, again list return is emulated and the
+C<wantarray> method (of the final C<next> call) can be checked when returning.
+
+=head2 restart
+
+ my $gen = generator { my $x = 1; $_->yield($x++) while 1 };
+ my $first = $gen->next;
+ $gen->restart;
+ $first == $gen->next; # true
+
