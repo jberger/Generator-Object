@@ -1,4 +1,6 @@
 Build.PL
 lib/Generator/Object.pm
 MANIFEST			This list of files
+README.pod
 t/basic.t
+t/exhaust.t
