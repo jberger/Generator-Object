@@ -17,7 +17,7 @@ subtest 'Basic Usage (evens)' => sub {
   is $evens->next, 4, 'right result';
 
   ok ! exists $evens->{orig}, 'orig does not leak';
-  ok ! exists $evens->{wantarray}, 'wantarry does not leak';
+  ok ! exists $evens->{wantarray}, 'wantarray does not leak';
   ok ! exists $evens->{yieldval}, 'yieldval does not leak';
 };
 
