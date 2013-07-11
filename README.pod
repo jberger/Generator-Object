@@ -153,6 +153,11 @@ so dies. In the future though this might change to be a safer no-op in the
 future, or else the method may only be made available inside the body as
 safe-guards. In the meantime, just don't do it!
 
+=head1 FUTURE WORK
+
+I intend (possibly soon) to allow arguments to be passed to the generator body
+possibly even on every call to C<next>. Stay tuned.
+
 =head1 SEE ALSO
 
 =over

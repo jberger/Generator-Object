@@ -254,6 +254,11 @@ sub yield {
   $self->{orig}->schedule_to;
 }
 
+=head1 FUTURE WORK
+
+I intend (possibly soon) to allow arguments to be passed to the generator body
+possibly even on every call to C<next>. Stay tuned.
+
 =head1 SEE ALSO
 
 =over
