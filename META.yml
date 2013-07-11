@@ -1,0 +1,28 @@
+---
+abstract: 'Generator objects for Perl using Coro'
+author:
+  - 'Joel Berger'
+build_requires: {}
+configure_requires:
+  Module::Build: 0.38
+dynamic_config: 1
+generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Generator-Object
+no_index:
+  file:
+    - README.pod
+provides:
+  Generator::Object:
+    file: lib/Generator/Object.pm
+    version: 0.01
+requires:
+  Coro: 0
+resources:
+  bugtracker: http://github.com/jberger/Generator-Object/issues
+  license: http://dev.perl.org/licenses/
+  repository: http://github.com/jberger/Generator-Object
+version: 0.01
