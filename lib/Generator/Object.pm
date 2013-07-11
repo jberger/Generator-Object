@@ -60,7 +60,7 @@ use Coro ();
 
 =head2 generator
 
- my $gen = generator { ...; $_->yield };
+ my $gen = generator { ...; $_->yield($val) while 1 };
 
 Convenience function for creating instances of L<Generator::Object>. Takes a
 block (subref) which is the body of the generator. Returns an instance of
@@ -169,6 +169,13 @@ sub next {
  $gen->restart;
  $first == $gen->next; # true
 
+Restarts the generator to its initial state. Of course if your generator has
+made external changes, those will remain. Any values in C<retval> are cleared
+and C<exhausted> is reset (if applicable).
+
+C<restart> is implicitly called when C<next> is invoked on an exhasted
+generator.
+
 =cut
 
 sub restart {
@@ -177,6 +184,20 @@ sub restart {
   delete $self->{exhausted};
   delete $self->{retval};
 }
+
+=head2 retval 
+
+ my $gen = generator { return 'val' };
+ $gen->next;
+ my $val = $gen->retval; # 'val'
+
+Returns the value or values returned from the generator upon exhaustion if any.
+In list context all returned values are given, in scalar context the first
+element is returned. This emulates returning a list. Note that the context in
+which C<next> was called as the generator is exhausted is available via the
+C<wantarray> method for manual control.
+
+=cut
 
 sub retval { 
   my $self = shift;
@@ -187,7 +208,42 @@ sub retval {
     : $self->{retval}[0];
 }
 
+=head2 wantarray 
+
+ my $gen = generator {
+   while (1) {
+     $_->wantarray
+       ? $_->yield('next called in list context')
+       : $_->yield('next called in scalar context');
+   }
+ }
+
+ my ($list) = $gen->next;
+ my $scalar = $gen->next;
+
+Much like the Perl built-in of the same name, this method provides the context
+in which the C<next> method is called, making that information available to the
+generator body.
+
+=cut
+
 sub wantarray { shift->{wantarray} }
+
+=head2 yield
+
+ my $gen = generator { ...; $_->yield($val) while 1 };
+
+This method is the guts of the generator. When called C<yield> suspends the
+state of the interpreter as it exists inside the generator body and returns to
+the point at which C<next> was called. The values passed will be returned by
+C<next> (see its documentation for more).
+
+This method should not be called outside the generator body. For now, doing
+so dies. In the future though this might change to be a safer no-op in the
+future, or else the method may only be made available inside the body as
+safe-guards. In the meantime, just don't do it!
+
+=cut
  
 sub yield {
   my $self = shift;
@@ -197,6 +253,41 @@ sub yield {
   $self->{yieldval} = [ @_ ];
   $self->{orig}->schedule_to;
 }
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Coro>
+
+=back
+
+A few similar modules already exist. Their API and design choices weren't to my
+liking, but they may appeal to you. Certainly I used them as reference and
+thanks are due.
+
+=over
+
+=item L<Coro::Generator>
+
+=item L<Attribute::Generator>
+
+=back
+
+=head1 SOURCE REPOSITORY
+
+L<http://github.com/jberger/Generator-Object>
+
+=head1 AUTHOR
+
+Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2013 by Joel Berger
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
  
 1;
 
