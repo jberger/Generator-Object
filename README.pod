@@ -33,17 +33,20 @@ For convenience the generator object is provided to the function body as C<$_>.
 Further the context of the C<next> method call is provided via the C<wantarray>
 object method. When/if the generator is exhausted, the C<next> method will
 return C<undef> and the C<exhausted> method will return true. Any return value
-from the body will then be available from the C<retval> method. After the
-generator has reported that it is exhausted, another call to C<next> will
-implicitly restart the generator. The generator may be restarted at any time
-by using the C<restart> method. C<retval> will be empty after the generator
-restarts.
+from the body will then be available from the C<retval> method. The generator
+may be restarted at any time by using the C<restart> method. C<retval> will
+be empty after the generator restarts.
+
+Note: in version 0.01 of this module the generator would automatically
+restart when calling C<next> again after it was exhausted. This behavior was
+removed in version 0.02 because upon reflection this is not usually what the
+author means and since C<restart> is available it can be done manually.
 
 The internals of the object are entirely off-limits and where possible they
 have been hidden to prevent access. No subclass api is presented nor planned.
 The use of L<Coro> internally shouldn't interfere with use of L<Coro>
 externally.
- 
+
 =head1 EXPORTS
 
 =head2 generator
@@ -74,10 +77,8 @@ L<Generator::Object>.
 
 When the generator is exhausted the C<next> method will return C<undef>.
 However, since C<next> might legitimately return C<undef>, this method is
-provided to check that the generator has indeed been exhausted.
-
-Note that if C<next> is called on an exhausted generator, it is restarted, and
-thus C<exhausted> will again return a false value.
+provided to check that the generator has indeed been exhausted. If the
+generator is restarted, then this method will again returns false.
 
 =head2 next
 
@@ -107,10 +108,12 @@ Restarts the generator to its initial state. Of course if your generator has
 made external changes, those will remain. Any values in C<retval> are cleared
 and C<exhausted> is reset (if applicable).
 
-C<restart> is implicitly called when C<next> is invoked on an exhasted
-generator.
+Note: C<restart> is no longer implicitly called when C<next> is invoked on an
+exhasted generator. You may recreate the old behavior by simply doing
 
-=head2 retval 
+ $gen->restart if $gen->exhausted;
+
+=head2 retval
 
  my $gen = generator { return 'val' };
  $gen->next;
@@ -122,7 +125,12 @@ element is returned. This emulates returning a list. Note that the context in
 which C<next> was called as the generator is exhausted is available via the
 C<wantarray> method for manual control.
 
-=head2 wantarray 
+Before the generator is exhausted (and therefore before it has really returned
+anything) the value of retval is C<undef> in scalar context and an empty list
+in list context. Note that version 0.01 returned C<undef> in both contexts but
+this has been corrected in version 0.02.
+
+=head2 wantarray
 
  my $gen = generator {
    while (1) {
@@ -188,10 +196,8 @@ Joel Berger, E<lt>joel.a.berger@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2013 by Joel Berger
+Copyright (C) 2013-2015 by Joel Berger
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
- 
-1;
 
