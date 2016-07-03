@@ -11,15 +11,18 @@ my $gen = generator {
 
 is $gen->next, 'yield', 'yield';
 is $gen->next, undef, 'yield (exhausted)';
-is $gen->exhausted, 1, 'exhausted';
+ok $gen->exhausted, 'exhausted';
 is scalar $gen->retval, 'done', 'return value (scalar context)';
-is_deeply [ $gen->retval], ['done', 'and done'], 'return value (list context)';
+is_deeply [$gen->retval], ['done', 'and done'], 'return value (list context)';
 
+# check not autorestart is removed
+is $gen->next, undef, 'still undef';
+ok $gen->exhausted, 'still exhausted';
+
+$gen->restart;
 is $gen->next, 'yield', 'restarted';
-ok ! exists $gen->{retval}, 'retval is removed';
 is $gen->retval, undef, 'retval reflects restart';
-ok ! exists $gen->{exhausted}, 'exhausted is removed';
-is $gen->exhausted, undef, 'exhausted reflects restart';
+ok !$gen->exhausted, 'exhausted reflects restart';
 
 
 done_testing;

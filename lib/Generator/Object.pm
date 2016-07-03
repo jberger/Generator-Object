@@ -35,23 +35,26 @@ For convenience the generator object is provided to the function body as C<$_>.
 Further the context of the C<next> method call is provided via the C<wantarray>
 object method. When/if the generator is exhausted, the C<next> method will
 return C<undef> and the C<exhausted> method will return true. Any return value
-from the body will then be available from the C<retval> method. After the
-generator has reported that it is exhausted, another call to C<next> will
-implicitly restart the generator. The generator may be restarted at any time
-by using the C<restart> method. C<retval> will be empty after the generator
-restarts.
+from the body will then be available from the C<retval> method. The generator
+may be restarted at any time by using the C<restart> method. C<retval> will
+be empty after the generator restarts.
+
+Note: in version 0.01 of this module the generator would automatically
+restart when calling C<next> again after it was exhausted. This behavior was
+removed in version 0.02 because upon reflection this is not usually what the
+author means and since C<restart> is available it can be done manually.
 
 The internals of the object are entirely off-limits and where possible they
 have been hidden to prevent access. No subclass api is presented nor planned.
 The use of L<Coro> internally shouldn't interfere with use of L<Coro>
 externally.
- 
+
 =cut
 
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 $VERSION = eval $VERSION;
 
 use Coro ();
@@ -91,7 +94,7 @@ Takes a subref which is the body of the generator. Returns an instance of
 L<Generator::Object>.
 
 =cut
- 
+
 sub new {
   my $class = shift;
   my $sub = shift;
@@ -109,10 +112,8 @@ sub new {
 
 When the generator is exhausted the C<next> method will return C<undef>.
 However, since C<next> might legitimately return C<undef>, this method is
-provided to check that the generator has indeed been exhausted.
-
-Note that if C<next> is called on an exhausted generator, it is restarted, and
-thus C<exhausted> will again return a false value.
+provided to check that the generator has indeed been exhausted. If the
+generator is restarted, then this method will again returns false.
 
 =cut
 
@@ -136,17 +137,16 @@ available via the C<retval> method, again list return is emulated and the
 C<wantarray> method (of the final C<next> call) can be checked when returning.
 
 =cut
- 
+
 sub next {
   my $self = shift;
+  return undef if $self->exhausted;
 
   # protect some state values from leaking
   local $self->{orig} = $Coro::current;
   local $self->{wantarray} = wantarray;
   local $self->{yieldval};
 
-  $self->restart if $self->exhausted;
- 
   $self->{coro} = Coro->new(sub {
     local $_ = $self;
     $self->{retval} = [ $self->{sub}->() ];
@@ -156,7 +156,7 @@ sub next {
 
   $self->{coro}->schedule_to;
 
-  return 
+  return
     $self->{wantarray}
     ? @{ $self->{yieldval} }
     : $self->{yieldval}[0];
@@ -173,8 +173,10 @@ Restarts the generator to its initial state. Of course if your generator has
 made external changes, those will remain. Any values in C<retval> are cleared
 and C<exhausted> is reset (if applicable).
 
-C<restart> is implicitly called when C<next> is invoked on an exhasted
-generator.
+Note: C<restart> is no longer implicitly called when C<next> is invoked on an
+exhasted generator. You may recreate the old behavior by simply doing
+
+ $gen->restart if $gen->exhausted;
 
 =cut
 
@@ -185,7 +187,7 @@ sub restart {
   delete $self->{retval};
 }
 
-=head2 retval 
+=head2 retval
 
  my $gen = generator { return 'val' };
  $gen->next;
@@ -199,7 +201,7 @@ C<wantarray> method for manual control.
 
 =cut
 
-sub retval { 
+sub retval {
   my $self = shift;
   return undef unless $self->{retval};
   return
@@ -208,7 +210,7 @@ sub retval {
     : $self->{retval}[0];
 }
 
-=head2 wantarray 
+=head2 wantarray
 
  my $gen = generator {
    while (1) {
@@ -244,7 +246,7 @@ future, or else the method may only be made available inside the body as
 safe-guards. In the meantime, just don't do it!
 
 =cut
- 
+
 sub yield {
   my $self = shift;
   die "Must not call yield outside the generator!\n"
