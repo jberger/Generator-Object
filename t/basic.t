@@ -62,5 +62,15 @@ subtest 'Context from next via wantarray' => sub {
   is scalar $gen->next, 'b', 'scalar context';
 };
 
+subtest 'retval' => sub {
+  my $gen = generator { return (1,2,3) };
+  is scalar $gen->retval, undef, 'correct retval scalar context';
+  is_deeply [$gen->retval], [], 'correct retval list context';
+  $gen->next;
+  ok $gen->exhausted, 'generator is now exhausted';
+  is scalar $gen->retval, 1, 'correct return value after exhausted scalar context';
+  is_deeply [$gen->retval], [1,2,3], 'correct return value after exhausted list context';
+};
+
 done_testing;
 

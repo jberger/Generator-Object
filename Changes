@@ -2,6 +2,7 @@ Revision history for Perl module Generator-Object
 
 0.02 2016-07-03
   - Removed autorestart of the generator
+  - retval returns an empty list in list context before exhaustion
 
 0.01 2013-07-10
   - Initial release

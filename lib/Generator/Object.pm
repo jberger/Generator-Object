@@ -98,7 +98,7 @@ L<Generator::Object>.
 sub new {
   my $class = shift;
   my $sub = shift;
-  return bless { sub => $sub }, $class;
+  return bless { sub => $sub, retval => [] }, $class;
 }
 
 =head1 METHODS
@@ -184,7 +184,7 @@ sub restart {
   my $self = shift;
   delete $self->{coro};
   delete $self->{exhausted};
-  delete $self->{retval};
+  $self->{retval} = [];
 }
 
 =head2 retval
@@ -198,6 +198,11 @@ In list context all returned values are given, in scalar context the first
 element is returned. This emulates returning a list. Note that the context in
 which C<next> was called as the generator is exhausted is available via the
 C<wantarray> method for manual control.
+
+Before the generator is exhausted (and therefore before it has really returned
+anything) the value of retval is C<undef> in scalar context and an empty list
+in list context. Note that version 0.01 returned C<undef> in both contexts but
+this has been corrected in version 0.02.
 
 =cut
 
