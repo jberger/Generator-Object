@@ -126,9 +126,9 @@ sub exhausted { shift->{exhausted} }
 
 This method iterates the generator until C<yield> is called or the body is
 returned from. It returns any value passed to C<yield>, in list context all
-arguments are returned, in scalar context the first argument is returned. This
-emulates returning a list. The context of the C<next> call is available from
-the C<wantarray> method for more manual control.
+arguments are returned, in scalar context the first argument is returned. The
+context of the C<next> call is available from the C<wantarray> method for more
+manual control.
 
 When the generator is exhausted, that is to say, when the body function
 returns, C<next> returns C<undef>. Check C<exhausted> to differentiate between
@@ -195,9 +195,9 @@ sub restart {
 
 Returns the value or values returned from the generator upon exhaustion if any.
 In list context all returned values are given, in scalar context the first
-element is returned. This emulates returning a list. Note that the context in
-which C<next> was called as the generator is exhausted is available via the
-C<wantarray> method for manual control.
+element is returned. Note that the context in which C<next> was called as the
+generator is exhausted is available via the C<wantarray> method for manual
+control.
 
 Before the generator is exhausted (and therefore before it has really returned
 anything) the value of retval is C<undef> in scalar context and an empty list
