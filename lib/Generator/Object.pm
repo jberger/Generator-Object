@@ -54,7 +54,7 @@ externally.
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 $VERSION = eval $VERSION;
 
 use Coro ();
@@ -156,10 +156,8 @@ sub next {
 
   $self->{coro}->schedule_to;
 
-  return
-    $self->{wantarray}
-    ? @{ $self->{yieldval} }
-    : $self->{yieldval}[0];
+  my $yield = $self->{yieldval} || [];
+  return $self->{wantarray} ? @$yield : $yield->[0];
 }
 
 =head2 restart

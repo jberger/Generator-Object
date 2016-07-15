@@ -72,5 +72,21 @@ subtest 'retval' => sub {
   is_deeply [$gen->retval], [1,2,3], 'correct return value after exhausted list context';
 };
 
+subtest 'next without yield' => sub {
+  # regression test for github #1
+  my $gen = generator { return (1,2,3) };
+  eval { my (@vals) = $gen->next };
+  ok !$@, 'no error on next without yield (list context)';
+  $gen->restart;
+
+  eval { my $val = $gen->next };
+  ok !$@, 'no error on next without yield (scalar context)';
+  $gen->restart;
+
+  eval { $gen->next };
+  ok !$@, 'no error on next without yield (void context)';
+  $gen->restart;
+};
+
 done_testing;
 

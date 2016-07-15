@@ -1,5 +1,8 @@
 Revision history for Perl module Generator-Object
 
+0.04 2016-07-15
+  - Fix bug when next was called in list context without ever calling yield (GH#1)
+
 0.03 2016-07-03
   - Fix some confusion in the documentation
 
